@@ -2,9 +2,17 @@ cmake_minimum_required(VERSION 2.8.3)
 project(gpd_ros)
 
 ## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS cmake_modules eigen_conversions message_generation roscpp rospy sensor_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  eigen_conversions
+  geometry_msgs
+  message_generation
+  roscpp
+  sensor_msgs
+  std_msgs
+  tf2_eigen
+  tf2_ros
+)
 
 # PCL
 find_package(PCL REQUIRED)
@@ -22,17 +30,34 @@ endif()
 include_directories(${GPD_LIB_INCLUDE_DIR})
 message(STATUS "gpd_include_dir: ${GPD_LIB_INCLUDE_DIR}")
 
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
+set(CMAKE_CXX_FLAGS "-fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
 
 ## Generate messages in the 'msg' folder
-add_message_files(FILES CloudIndexed.msg CloudSamples.msg CloudSources.msg GraspConfig.msg GraspConfigList.msg
-  SamplesMsg.msg)
+add_message_files(FILES
+  CloudIndexed.msg
+  CloudSamples.msg
+  CloudSources.msg
+  GraspConfig.msg
+  GraspConfigList.msg
+  SamplesMsg.msg
+)
 
 ## Generate services in the 'srv' folder
-add_service_files(FILES detect_grasps.srv)
+add_service_files(FILES
+  detect_grasps.srv
+)
+
+add_action_files(FILES
+  SampleGraspPoses.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)
+generate_messages(DEPENDENCIES
+  actionlib_msgs
+  geometry_msgs
+  sensor_msgs
+  std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -44,11 +69,17 @@ generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-INCLUDE_DIRS include
-CATKIN_DEPENDS cmake_modules eigen_conversions geometry_msgs message_runtime roscpp sensor_msgs std_msgs
-DEPENDS PCL
-# CATKIN_DEPENDS cmake_modules eigen_conversions geometry_msgs message_runtime roscpp sensor_msgs std_msgs
-# DEPENDS Eigen OpenCV PCL
+  INCLUDE_DIRS
+    include
+  CATKIN_DEPENDS
+    eigen_conversions
+    geometry_msgs
+    message_runtime
+    roscpp
+    sensor_msgs
+    std_msgs
+  DEPENDS
+    PCL
 )
 
 ###########
@@ -57,7 +88,12 @@ DEPENDS PCL
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  /usr/include/opencv4
+)
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_grasp_messages src/${PROJECT_NAME}/grasp_messages.cpp)

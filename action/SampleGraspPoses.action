@@ -1,0 +1,12 @@
+# goal sent to client
+string frame_id
+bool cvt_poses
+---
+# result sent to server
+string grasp_state
+# grasp poses
+geometry_msgs/PoseStamped[] grasp_candidates
+# cost of each grasp
+float64[] costs
+---
+# feeback empty

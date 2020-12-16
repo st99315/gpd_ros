@@ -36,14 +36,18 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <numeric>
 
 // ROS
+#include <ros/ros.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <actionlib/server/simple_action_server.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/transform_listener.h>
 
 // PCL
 #include <pcl/common/common.h>
@@ -62,6 +66,7 @@
 #include <gpd_ros/GraspConfig.h>
 #include <gpd_ros/GraspConfigList.h>
 #include <gpd_ros/SamplesMsg.h>
+#include <gpd_ros/SampleGraspPosesAction.h>
 
 // this project (headers)
 #include <gpd_ros/grasp_messages.h>
@@ -86,17 +91,6 @@ public:
    * \param node the ROS node
   */
   GraspDetectionNode(ros::NodeHandle& node);
-
-  /**
-   * \brief Destructor.
-  */
-  ~GraspDetectionNode()
-  {
-    delete cloud_camera_;
-//    delete importance_sampling_;
-    delete grasp_detector_;
-    delete rviz_plotter_;
-  }
 
   /**
    * \brief Run the ROS node. Loops while waiting for incoming ROS messages.
@@ -125,19 +119,19 @@ private:
    * \brief Callback function for the ROS topic that contains the input point cloud.
    * \param msg the incoming ROS message
   */
-  void cloud_callback(const sensor_msgs::PointCloud2& msg);
+  void cloudCallback(const sensor_msgs::PointCloud2& msg);
 
   /**
    * \brief Callback function for the ROS topic that contains the input point cloud and a list of indices.
    * \param msg the incoming ROS message
   */
-  void cloud_indexed_callback(const gpd_ros::CloudIndexed& msg);
+  void cloudIndexedCallback(const gpd_ros::CloudIndexed& msg);
 
   /**
    * \brief Callback function for the ROS topic that contains the input point cloud and a list of (x,y,z) samples.
    * \param msg the incoming ROS message
   */
-  void cloud_samples_callback(const gpd_ros::CloudSamples& msg);
+  void cloudSamplesCallback(const gpd_ros::CloudSamples& msg);
 
   /**
    * \brief Initialize the <cloud_camera> object given a <cloud_sources> message.
@@ -149,13 +143,21 @@ private:
    * \brief Callback function for the ROS topic that contains the input samples.
    * \param msg the incoming ROS message
   */
-  void samples_callback(const gpd_ros::SamplesMsg& msg);
+  void samplesCallback(const gpd_ros::SamplesMsg& msg);
 
   Eigen::Matrix3Xd fillMatrixFromFile(const std::string& filename, int num_normals);
 
+  // for service-driven
+  void goalCallback();
+  void preemptCallback();
+  void filterByScore(std::vector<std::unique_ptr<gpd::candidate::Hand>>& grasps);
+  void sampleGrasps(const std::vector<std::unique_ptr<gpd::candidate::Hand>>& grasps);
+  bool getEigenTransform(const std::string& src, const std::string& dst, Eigen::Isometry3d& out);
+  Eigen::Isometry3d getTransformFromRPY(double rx, double ry, double rz);
+
   Eigen::Vector3d view_point_; ///< (input) view point of the camera onto the point cloud
 
-  gpd::util::Cloud* cloud_camera_; ///< stores point cloud with (optional) camera information and surface normals
+  std::shared_ptr<gpd::util::Cloud> cloud_camera_; ///< stores point cloud with (optional) camera information and surface normals
   std_msgs::Header cloud_camera_header_; ///< stores header of the point cloud
 
   int size_left_cloud_; ///< (input) size of the left point cloud (when using two point clouds as input)
@@ -167,17 +169,29 @@ private:
   ros::Publisher grasps_rviz_pub_; ///< ROS publisher for grasps in rviz (visualization)
 
   bool use_importance_sampling_; ///< if importance sampling is used
-  bool use_rviz_; ///< if rviz is used for visualization instead of PCL
   std::vector<double> workspace_; ///< workspace limits
 
-  gpd::GraspDetector* grasp_detector_; ///< used to run the GPD algorithm
+  std::unique_ptr<gpd::GraspDetector> grasp_detector_; ///< used to run the GPD algorithm
 //gpd::SequentialImportanceSampling* importance_sampling_; ///< sequential importance sampling variation of GPD algorithm
-  GraspPlotter* rviz_plotter_; ///< used to plot detected grasps in rviz
+  std::unique_ptr<GraspPlotter> rviz_plotter_; ///< used to plot detected grasps in rviz
 
   /** constants for input point cloud types */
   static const int POINT_CLOUD_2; ///< sensor_msgs/PointCloud2
   static const int CLOUD_INDEXED; ///< gpd/CloudIndexed
   static const int CLOUD_SAMPLES; ///< gpd/CloudSamples
+
+  // for service-driven
+  bool service_driven_;
+  std::unique_ptr<actionlib::SimpleActionServer<gpd_ros::SampleGraspPosesAction>> server_;
+
+  bool cvt_poses_;
+  bool goal_active_;
+  std::string base_frame_;
+  std::string robot_frame_;
+  std::string cam_opt_frame_;
+
+  bool filtering_score_;
+  double score_threshold_;
 };
 
 #endif /* GRASP_DETECTION_NODE_H_ */
