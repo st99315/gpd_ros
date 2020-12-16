@@ -62,6 +62,15 @@ public:
   GraspPlotter(ros::NodeHandle& node, const gpd::candidate::HandGeometry& params);
 
   /**
+   * \brief Set lifetime of markers in rviz.
+   * \param lifetime the time of markers alive, default is forever
+   */
+  inline void setLifetime(double lifetime)
+  {
+    lifetime_ = lifetime > 0.? lifetime: 0.;
+  }
+
+  /**
    * \brief Visualize grasps in rviz.
    * \param hands the grasps to be visualized
    * \param frame the frame that the grasps are in
@@ -107,6 +116,7 @@ private:
   double hand_depth_;
   double finger_width_;
   double hand_height_;
+  double lifetime_;
 };
 
 #endif /* GRASP_PLOTTER_H_ */

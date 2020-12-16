@@ -11,6 +11,7 @@ GraspPlotter::GraspPlotter(ros::NodeHandle& node, const gpd::candidate::HandGeom
   hand_height_ = params.height_;
   outer_diameter_ = params.outer_diameter_;
   finger_width_ = params.finger_width_;
+  lifetime_ = 0.;
 }
 
 
@@ -75,7 +76,7 @@ visualization_msgs::Marker GraspPlotter::createFingerMarker(const Eigen::Vector3
   marker.pose.position.x = center(0);
   marker.pose.position.y = center(1);
   marker.pose.position.z = center(2);
-  marker.lifetime = ros::Duration(10);
+  marker.lifetime = ros::Duration(lifetime_);
 
   // use orientation of hand frame
   Eigen::Quaterniond quat(frame);
@@ -114,7 +115,7 @@ visualization_msgs::Marker GraspPlotter::createHandBaseMarker(const Eigen::Vecto
   marker.pose.position.x = center(0);
   marker.pose.position.y = center(1);
   marker.pose.position.z = center(2);
-  marker.lifetime = ros::Duration(10);
+  marker.lifetime = ros::Duration(lifetime_);
 
   // use orientation of hand frame
   Eigen::Quaterniond quat(frame);
