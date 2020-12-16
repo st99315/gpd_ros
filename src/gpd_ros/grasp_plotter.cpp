@@ -18,6 +18,11 @@ GraspPlotter::GraspPlotter(ros::NodeHandle& node, const gpd::candidate::HandGeom
 void GraspPlotter::drawGrasps(const std::vector<std::unique_ptr<gpd::candidate::Hand>>& hands, const std::string& frame)
 {
   visualization_msgs::MarkerArray markers;
+  // delete all markers
+  markers.markers.resize(1);
+  markers.markers[0].action = 3;
+  rviz_pub_.publish(markers);
+
   markers = convertToVisualGraspMsg(hands, frame);
   rviz_pub_.publish(markers);
 }
