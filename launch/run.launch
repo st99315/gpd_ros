@@ -17,7 +17,7 @@
     <param name="config_file" value="$(find gpd_ros)/config/gpd_config.yaml" />
 
     <param name="filtering_score" value="true" />
-    <param name="score_threshold" value="-500." />
+    <param name="score_threshold" value="200." />
 
   </node>
 </launch>

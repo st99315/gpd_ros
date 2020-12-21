@@ -308,6 +308,25 @@ void GraspDetectionNode::cloudCallback(const sensor_msgs::PointCloud2& msg)
     {
       PointCloudRGBA::Ptr cloud(new PointCloudRGBA);
       pcl::fromROSMsg(msg, *cloud);
+
+      // remove table plane
+      if (true) {
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::SACSegmentation<pcl::PointXYZRGBA> seg;
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(pcl::SACMODEL_PLANE);
+        seg.setMethodType(pcl::SAC_RANSAC);
+        seg.setDistanceThreshold(0.025);
+        seg.setInputCloud(cloud);
+        seg.segment(*inliers, *coefficients);
+        for (size_t i = 0; i < inliers->indices.size(); ++i) {
+          cloud->points[inliers->indices[i]].x = std::numeric_limits<float>::quiet_NaN();
+          cloud->points[inliers->indices[i]].y = std::numeric_limits<float>::quiet_NaN();
+          cloud->points[inliers->indices[i]].z = std::numeric_limits<float>::quiet_NaN();
+        }
+      }
+
       cloud_camera_.reset(new gpd::util::Cloud(cloud, 0, view_points));
       cloud_camera_header_ = msg.header;
       ROS_INFO_STREAM("Received cloud with " << cloud_camera_->getCloudProcessed()->size() << " points.");
