@@ -97,7 +97,8 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_grasp_messages src/${PROJECT_NAME}/grasp_messages.cpp)
-add_dependencies(${PROJECT_NAME}_grasp_messages ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_grasp_messages ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+
 add_library(${PROJECT_NAME}_grasp_plotter src/${PROJECT_NAME}/grasp_plotter.cpp)
 
 ## Declare a C++ executable
