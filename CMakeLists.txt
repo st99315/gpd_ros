@@ -128,3 +128,25 @@ target_link_libraries(${PROJECT_NAME}_grasp_plotter
 target_link_libraries(${PROJECT_NAME}_grasp_messages
                       ${GPD_LIB}
                       ${catkin_LIBRARIES})
+
+
+# Mark libraries for installation
+install(TARGETS
+    ${PROJECT_NAME}_grasp_messages
+    ${PROJECT_NAME}_grasp_plotter
+    ${PROJECT_NAME}_detect_grasps
+    ${PROJECT_NAME}_detect_grasps_server
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Mark cpp header files for installation
+install(DIRECTORY include
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY config launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
